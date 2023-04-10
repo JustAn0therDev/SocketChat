@@ -39,11 +39,9 @@ int start_client() {
 	server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
 	while (1) {
-		// Get input from the user
-		char input[260];
-		scanf("%s", client_message);
-		strcpy(input, client_message);
-
+		// Is this REALLY the BEST way to read input though?
+		fgets(client_message, 2000, stdin);
+		
 		// Send the message to server:
 		if (sendto(socket_desc, client_message, strlen(client_message), 0,
 			(struct sockaddr*)&server_addr, server_struct_length) < 0) {
@@ -58,7 +56,7 @@ int start_client() {
 			return -1;
 		}
 
-		printf("Server's response: %s\n", server_message);
+		printf("Server: %s\n", server_message);
 	}
 
 	return 0;

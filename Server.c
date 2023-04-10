@@ -45,20 +45,6 @@ int start_server() {
 
 	printf("Listening for incoming messages...\n\n");
 
-	strcpy(server_message, "I'll reply to you with the same message you send me.");
-
-	//if (recvfrom(socket_desc, client_message, sizeof(client_message), 0,
-	//	(struct sockaddr*)&client_addr, &client_struct_length) < 0) {
-	//	printf("Couldn't receive\n");
-	//	return -1;
-	//}
-
-	//if (sendto(socket_desc, server_message, strlen(server_message), 0,
-	//	(struct sockaddr*)&client_addr, client_struct_length) < 0) {
-	//	printf("Can't send\n");
-	//	return -1;
-	//}
-
 	while (1) {
 		if (recvfrom(socket_desc, client_message, sizeof(client_message), 0,
 			(struct sockaddr*)&client_addr, &client_struct_length) < 0) {
@@ -66,20 +52,18 @@ int start_server() {
 			return -1;
 		}
 
-		printf("Received message from IP: %s and port: %i\n",
-			inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+		//printf("Received message from IP: %s and port: %i\n",
+		//	inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
-		printf("Msg from client: %s\n", client_message);
+		printf("Client: %s\n", client_message);
 
-		strcpy(server_message, client_message);
+		fgets(server_message, 2000, stdin);
 
 		if (sendto(socket_desc, server_message, strlen(server_message), 0,
 			(struct sockaddr*)&client_addr, client_struct_length) < 0) {
 			printf("Can't send\n");
 			return -1;
 		}
-
-		strcpy(client_message, "");
 	}
 
 	return 0;
