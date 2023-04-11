@@ -4,11 +4,8 @@
 #include <stdio.h>
 #include <processthreadsapi.h>
 
-#define MAX_THREADS 1
-
 typedef struct {
 	SOCKET socket_desc;
-	char* server_message;
 	struct sockaddr* server_addr;
 	int server_struct_length;
 } ReadMessageInput;
@@ -20,8 +17,6 @@ int start_client() {
 	struct sockaddr_in server_addr;
 	char server_message[2000], client_message[2000];
 	int server_struct_length = sizeof(server_addr);
-	HANDLE  hThreadArray[MAX_THREADS];
-	void* pDataArray[MAX_THREADS];
 
 	// Clean buffers:
 	memset(server_message, '\0', sizeof(server_message));
@@ -52,7 +47,7 @@ int start_client() {
 	server_addr.sin_port = htons(2000);
 	server_addr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-	ReadMessageInput rmi = { socket_desc, server_message, (struct sockaddr*)&server_addr, server_struct_length };
+	ReadMessageInput rmi = { socket_desc, (struct sockaddr*)&server_addr, server_struct_length };
 
 	DWORD dword;
 
@@ -83,12 +78,14 @@ void read_message(LPVOID lpParam) {
 	ReadMessageInput* rmi = (ReadMessageInput*)lpParam;
 
 	while (1) {
+		char server_message_buffer[260] = { 0 };
+
 		// Receive the server's response:
-		if (recvfrom(rmi->socket_desc, rmi->server_message, sizeof(rmi->server_message), 0,
+		if (recvfrom(rmi->socket_desc, server_message_buffer, sizeof(server_message_buffer), 0,
 			rmi->server_addr, &rmi->server_struct_length) < 0) {
 			printf("Error while receiving server's msg: %d\n", WSAGetLastError());
 		}
 
-		printf("%s\n", rmi->server_message);
+		printf("%s\n", server_message_buffer);
 	}
 }

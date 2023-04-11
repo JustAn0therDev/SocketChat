@@ -5,15 +5,10 @@
 
 int start_server() {
 	int socket_desc;
-	char server_message[2000], client_message[2000];
 	struct sockaddr_in server_addr, client_addr;
 	int client_struct_length = sizeof(client_addr);
 	struct sockaddr_in addresses[10] = { 0 };
 	int addressesIdx = 0;
-
-	// Clean buffers:
-	memset(server_message, '\0', sizeof(server_message));
-	memset(client_message, '\0', sizeof(client_message));
 
 	WSADATA wsaData = { 0 };
 
@@ -48,6 +43,9 @@ int start_server() {
 	printf("Listening for incoming messages...\n\n");
 
 	while (1) {
+		char client_message[2000];
+		memset(client_message, '\0', sizeof(client_message));
+
 		if (recvfrom(socket_desc, client_message, sizeof(client_message), 0,
 			(struct sockaddr*)&client_addr, &client_struct_length) < 0) {
 			printf("Couldn't receive\n");
@@ -67,21 +65,19 @@ int start_server() {
 
 		printf("Client %d: %s\n", receivedFromPort, client_message);
 
-		char buffer[260];
-		sprintf(buffer, "%d: %s", receivedFromPort, client_message);
-
-		strcpy(server_message, buffer);
+		char buffer[260] = { 0 };
+		sprintf_s(buffer, 260, "%d: %s", receivedFromPort, client_message);
 
 		for (int i = 0; i < 10; i++) {
-			if (receivedFromPort != ntohs(addresses[i].sin_port) && ntohs(addresses[i].sin_port) != 0) {
-				if (sendto(socket_desc, server_message, strlen(server_message), 0,
-					(struct sockaddr*)&addresses[i], client_struct_length) < 0) {
+			//if (receivedFromPort != ntohs(addresses[i].sin_port) && ntohs(addresses[i].sin_port) != 0) {
+				if (sendto(socket_desc, buffer, strlen(buffer), 0,
+					(struct sockaddr*)&client_addr, client_struct_length) < 0) {
 					printf("Can't send\n");
-					return -1;
+					continue;
 				}
 
 				printf("Sent message to: %d\n", ntohs(addresses[i].sin_port));
-			}
+			//}
 		}
 	}
 
