@@ -30,7 +30,6 @@ int start_client() {
 		return 1;
 	}
 
-	// Create socket:
 	socket_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	if (socket_desc == INVALID_SOCKET) {
@@ -49,18 +48,17 @@ int start_client() {
 	DWORD dword;
 
 	HANDLE handle = CreateThread(
-	NULL,                   // default security attributes
-	0,                      // use default stack size  
-	read_message,           // thread function name
-	&rmi,					// argument to thread function 
-	0,                      // use default creation flags 
-	&dword);				// returns the thread identifier 
+	NULL,											// default security attributes
+	0,												// use default stack size  
+	(LPTHREAD_START_ROUTINE)read_message,           // thread function name
+	&rmi,											// argument to thread function 
+	0,												// use default creation flags 
+	&dword);										// returns the thread identifier 
 
 	while (1) {
 		// Is this REALLY the BEST way to read input though?
 		fgets(client_message, MAX_MESSAGE_SIZE, stdin);
 		
-		// Send the message to server:
 		if (sendto(socket_desc, client_message, (int)strlen(client_message), 0,
 			(struct sockaddr*)&server_addr, server_struct_length) < 0) {
 			printf("Unable to send message\n");

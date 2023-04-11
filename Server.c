@@ -25,7 +25,6 @@ int start_server() {
 		return 1;
 	}
 
-	// Create UDP socket:
 	socket_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	if (socket_desc == INVALID_SOCKET) {
@@ -60,8 +59,6 @@ int start_server() {
 			addresses[addressesIdx] = client_addr;
 			addressesIdx++;
 		}
-
-		// printf("Received message from IP: %s and port: %i\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
 		printf("Client %d: %s\n", ntohs(client_addr.sin_port), client_message);
 
