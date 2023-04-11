@@ -8,6 +8,8 @@ int start_server() {
 	char server_message[2000], client_message[2000];
 	struct sockaddr_in server_addr, client_addr;
 	int client_struct_length = sizeof(client_addr);
+	struct sockaddr_in addresses[10] = { 0 };
+	int addressesIdx = 0;
 
 	// Clean buffers:
 	memset(server_message, '\0', sizeof(server_message));
@@ -52,17 +54,45 @@ int start_server() {
 			return -1;
 		}
 
+		int receivedFromPort = ntohs(client_addr.sin_port);
+
+		// TODO: fix this check
+		//if (contains(addresses, 10, receivedFromPort) == 0) {
+		//	addresses[addressesIdx] = client_addr;
+		//	addressesIdx++;
+		//}
+
 		//printf("Received message from IP: %s and port: %i\n",
 		//	inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
-		printf("Client: %s\n", client_message);
+		printf("Client %d: %s\n", receivedFromPort, client_message);
 
-		fgets(server_message, 2000, stdin);
+		char buffer[260];
+		sprintf(buffer, "%d: %s", receivedFromPort, client_message);
 
-		if (sendto(socket_desc, server_message, strlen(server_message), 0,
-			(struct sockaddr*)&client_addr, client_struct_length) < 0) {
-			printf("Can't send\n");
-			return -1;
+		strcpy(server_message, buffer);
+
+		for (int i = 0; i < 10; i++) {
+			if (receivedFromPort != ntohs(addresses[i].sin_port) && ntohs(addresses[i].sin_port) != 0) {
+				if (sendto(socket_desc, server_message, strlen(server_message), 0,
+					(struct sockaddr*)&addresses[i], client_struct_length) < 0) {
+					printf("Can't send\n");
+					return -1;
+				}
+
+				printf("Sent message to: %d\n", ntohs(addresses[i].sin_port));
+			}
+		}
+	}
+
+	return 0;
+}
+
+// TODO: fix this check to compare information inside the struct sockaddr_in.
+int contains(int* ports, size_t ports_size, int port) {
+	for (int i = 0; i < ports_size; i++) {
+		if (ports[i] == port) {
+			return 1;
 		}
 	}
 
