@@ -69,7 +69,7 @@ int start_server() {
 		sprintf_s(buffer, MAX_MESSAGE_SIZE, "%d: %s", ntohs(client_addr.sin_port), client_message);
 
 		for (int i = 0; i < 10; i++) {
-			if (&addresses[i] == 0) {
+			if (ntohs(addresses[i].sin_port) == 0) {
 				continue;
 			}
 
@@ -91,7 +91,7 @@ int start_server() {
 				}
 			}
 
-			printf("Sent message to: %d\n", ntohs(addresses[i].sin_port));
+			printf("Sent message to: %s:%d\n", inet_ntoa(addresses[i].sin_addr), ntohs(addresses[i].sin_port));
 		}
 	}
 
