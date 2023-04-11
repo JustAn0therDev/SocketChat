@@ -3,6 +3,8 @@
 #include <windows.h>
 #include <stdio.h>
 
+#define MAX_MESSAGE_SIZE 2000
+
 int start_server() {
 	int socket_desc;
 	struct sockaddr_in server_addr = { 0 }, client_addr = { 0 };
@@ -61,19 +63,33 @@ int start_server() {
 
 		printf("Client %d: %s\n", ntohs(client_addr.sin_port), client_message);
 
-		char buffer[260] = { 0 };
-		sprintf_s(buffer, 260, "%d: %s", ntohs(client_addr.sin_port), client_message);
+		char buffer[MAX_MESSAGE_SIZE] = { 0 };
+		sprintf_s(buffer, MAX_MESSAGE_SIZE, "%d: %s", ntohs(client_addr.sin_port), client_message);
 
 		for (int i = 0; i < 10; i++) {
+			if (&addresses[i] == 0) {
+				continue;
+			}
+
 			if (is_same_address(&addresses[i], &client_addr) == 0) {
 				if (sendto(socket_desc, buffer, strlen(buffer), 0,
 					(struct sockaddr*)&addresses[i], client_struct_length) < 0) {
-					printf("Can't send\n");
+					printf("Couldn't send message to: %s:%d\n", inet_ntoa(addresses[i].sin_addr), ntohs(addresses[i].sin_port));
 					continue;
 				}
-
-				printf("Sent message to: %d\n", ntohs(addresses[i].sin_port));
 			}
+			else {
+				char sameMessengerBuffer[MAX_MESSAGE_SIZE] = { 0 };
+				sprintf_s(sameMessengerBuffer, MAX_MESSAGE_SIZE, "%d (You): %s", ntohs(client_addr.sin_port), client_message);
+
+				if (sendto(socket_desc, sameMessengerBuffer, strlen(sameMessengerBuffer), 0,
+					(struct sockaddr*)&addresses[i], client_struct_length) < 0) {
+					printf("Couldn't send message to: %s:%d\n", inet_ntoa(addresses[i].sin_addr), ntohs(addresses[i].sin_port));
+					continue;
+				}
+			}
+
+			printf("Sent message to: %d\n", ntohs(addresses[i].sin_port));
 		}
 	}
 
