@@ -14,7 +14,7 @@ void read_message(LPVOID lpParam);
 
 int start_client() {
 	int socket_desc;
-	struct sockaddr_in server_addr;
+	struct sockaddr_in server_addr = { 0 };
 	char server_message[2000], client_message[2000];
 	int server_struct_length = sizeof(server_addr);
 
@@ -62,6 +62,8 @@ int start_client() {
 	while (1) {
 		// Is this REALLY the BEST way to read input though?
 		fgets(client_message, 2000, stdin);
+
+		printf("You: %s\n", client_message);
 		
 		// Send the message to server:
 		if (sendto(socket_desc, client_message, strlen(client_message), 0,

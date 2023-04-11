@@ -5,7 +5,7 @@
 
 int start_server() {
 	int socket_desc;
-	struct sockaddr_in server_addr, client_addr;
+	struct sockaddr_in server_addr = { 0 }, client_addr = { 0 };
 	int client_struct_length = sizeof(client_addr);
 	struct sockaddr_in addresses[10] = { 0 };
 	int addressesIdx = 0;
@@ -52,23 +52,20 @@ int start_server() {
 			return -1;
 		}
 
-		int receivedFromPort = ntohs(client_addr.sin_port);
-
-		if (contains(addresses, 10, receivedFromPort) == 0) {
+		if (contains(addresses, 10, &client_addr) == 0) {
 			addresses[addressesIdx] = client_addr;
 			addressesIdx++;
 		}
 
-		//printf("Received message from IP: %s and port: %i\n",
-		//	inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
+		// printf("Received message from IP: %s and port: %i\n", inet_ntoa(client_addr.sin_addr), ntohs(client_addr.sin_port));
 
-		printf("Client %d: %s\n", receivedFromPort, client_message);
+		printf("Client %d: %s\n", ntohs(client_addr.sin_port), client_message);
 
 		char buffer[260] = { 0 };
-		sprintf_s(buffer, 260, "%d: %s", receivedFromPort, client_message);
+		sprintf_s(buffer, 260, "%d: %s", ntohs(client_addr.sin_port), client_message);
 
 		for (int i = 0; i < 10; i++) {
-			if (receivedFromPort != ntohs(addresses[i].sin_port) && ntohs(addresses[i].sin_port) != 0) {
+			if (is_same_address(&addresses[i], &client_addr) == 0) {
 				if (sendto(socket_desc, buffer, strlen(buffer), 0,
 					(struct sockaddr*)&addresses[i], client_struct_length) < 0) {
 					printf("Can't send\n");
@@ -83,13 +80,17 @@ int start_server() {
 	return 0;
 }
 
-int contains(struct sockaddr_in* addresses, size_t addresses_size, int port) {
+int contains(struct sockaddr_in* addresses, size_t addresses_size, struct sockaddr_in* current_address) {
 	for (int i = 0; i < addresses_size; i++) {
-		// TODO: THIS SHOULD COMPARE BOTH IP AND PORT, NOT JUST PORT
-		if (ntohs(addresses[i].sin_port) == port) {
+		if (is_same_address(&addresses[i], current_address)) {
 			return 1;
 		}
 	}
 
 	return 0;
+}
+
+int is_same_address(struct sockaddr_in* first, struct sockaddr_in* second) {
+	return ntohs(first->sin_port) == ntohs(second->sin_port) &&
+		strcmp(inet_ntoa(first->sin_addr), inet_ntoa(second->sin_addr)) == 0;
 }
