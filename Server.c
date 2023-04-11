@@ -5,8 +5,11 @@
 
 #define MAX_MESSAGE_SIZE 2000
 
+int contains(struct sockaddr_in* addresses, size_t addresses_size, struct sockaddr_in* current_address);
+int is_same_address(struct sockaddr_in* first, struct sockaddr_in* second);
+
 int start_server() {
-	int socket_desc;
+	SOCKET socket_desc;
 	struct sockaddr_in server_addr = { 0 }, client_addr = { 0 };
 	int client_struct_length = sizeof(client_addr);
 	struct sockaddr_in addresses[10] = { 0 };
@@ -26,8 +29,7 @@ int start_server() {
 	socket_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	if (socket_desc == INVALID_SOCKET) {
-		printf(WSAGetLastError());
-		printf("Error while creating socket\n");
+		printf("Error while creating socket: %d\n", WSAGetLastError());
 		return -1;
 	}
 
@@ -72,7 +74,7 @@ int start_server() {
 			}
 
 			if (is_same_address(&addresses[i], &client_addr) == 0) {
-				if (sendto(socket_desc, buffer, strlen(buffer), 0,
+				if (sendto(socket_desc, buffer, (int)strlen(buffer), 0,
 					(struct sockaddr*)&addresses[i], client_struct_length) < 0) {
 					printf("Couldn't send message to: %s:%d\n", inet_ntoa(addresses[i].sin_addr), ntohs(addresses[i].sin_port));
 					continue;
@@ -82,7 +84,7 @@ int start_server() {
 				char sameMessengerBuffer[MAX_MESSAGE_SIZE] = { 0 };
 				sprintf_s(sameMessengerBuffer, MAX_MESSAGE_SIZE, "%d (You): %s", ntohs(client_addr.sin_port), client_message);
 
-				if (sendto(socket_desc, sameMessengerBuffer, strlen(sameMessengerBuffer), 0,
+				if (sendto(socket_desc, sameMessengerBuffer, (int)strlen(sameMessengerBuffer), 0,
 					(struct sockaddr*)&addresses[i], client_struct_length) < 0) {
 					printf("Couldn't send message to: %s:%d\n", inet_ntoa(addresses[i].sin_addr), ntohs(addresses[i].sin_port));
 					continue;
