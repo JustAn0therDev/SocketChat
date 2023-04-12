@@ -83,10 +83,10 @@ int start_server() {
 				}
 			}
 			else {
-				char sameMessengerBuffer[MAX_MESSAGE_SIZE] = { 0 };
-				sprintf_s(sameMessengerBuffer, MAX_MESSAGE_SIZE, "You: %s", client_message);
+				char same_messenger_buffer[MAX_MESSAGE_SIZE] = { 0 };
+				sprintf_s(same_messenger_buffer, MAX_MESSAGE_SIZE, "You: %s", client_message);
 
-				if (sendto(socket_desc, sameMessengerBuffer, (int)strlen(sameMessengerBuffer), 0,
+				if (sendto(socket_desc, same_messenger_buffer, (int)strlen(same_messenger_buffer), 0,
 					(struct sockaddr*)clients[i].client_addr, client_struct_length) < 0) {
 					printf("Couldn't send message to: %s (%s:%d)\n", clients[i].nickname, inet_ntoa(clients[i].client_addr->sin_addr), ntohs(clients[i].client_addr->sin_port));
 					continue;

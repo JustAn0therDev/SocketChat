@@ -18,7 +18,13 @@ int main() {
 	else if (n == '2') {
 		char nickname[150];
 		printf("Please tell me your nickname (up to 150 characters): ");
-		scanf("%s", nickname);
+		int args_filled = scanf("%s", nickname);
+		
+		if (args_filled != 1) {
+			printf("Unable to read nickname\n");
+			return 1;
+		}
+
 		start_client(nickname);
 	}
 	else {
