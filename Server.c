@@ -49,7 +49,7 @@ int start_server() {
 
 	while (1) {
 		ClientSocketMessage client_socket_message = { 0 };
-		char client_message[2000] = { 0 };
+		unsigned char client_message[2000] = { 0 };
 
 		if (recvfrom(socket_desc, client_message, sizeof(client_socket_message), 0,
 			(struct sockaddr*)&client_addr, &client_struct_length) < 0) {

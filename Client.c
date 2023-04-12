@@ -57,7 +57,7 @@ int start_client(char* nickname) {
 		fgets(client_socket_message.text_message, MAX_MESSAGE_SIZE, stdin);
 		
 		// char == 1 byte
-		if (sendto(socket_desc, (char*)&client_socket_message, sizeof(client_socket_message), 0,
+		if (sendto(socket_desc, (unsigned char*)&client_socket_message, sizeof(client_socket_message), 0,
 			(struct sockaddr*)&server_addr, server_struct_length) < 0) {
 			printf("Unable to send message\n");
 			return -1;
