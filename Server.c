@@ -75,7 +75,11 @@ void start_server() {
 			clientsIdx++;
 		}
 
-		printf("Client %s: %s\n", client_socket_message.nickname, client_socket_message.text_message);
+		printf("Received the following message from %s (%s:%d): %s\n", 
+			client_socket_message.nickname, 
+			inet_ntoa(client_addr.sin_addr),
+			ntohs(client_addr.sin_port),
+			client_socket_message.text_message);
 
 		char message_to_client_buffer[MAX_MESSAGE_SIZE] = { 0 };
 		sprintf_s(message_to_client_buffer, MAX_MESSAGE_SIZE, "%s: %s", client_socket_message.nickname, client_socket_message.text_message);
@@ -107,7 +111,7 @@ void start_server() {
 				}
 			}
 
-			printf("Sent message to: %s (%s:%d)\n", clients[i].nickname, inet_ntoa(clients[i].client_addr.sin_addr), ntohs(clients[i].client_addr.sin_port));
+			printf("Broadcasted message to: %s (%s:%d)\n", clients[i].nickname, inet_ntoa(clients[i].client_addr.sin_addr), ntohs(clients[i].client_addr.sin_port));
 		}
 	}
 
