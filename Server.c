@@ -80,6 +80,8 @@ void start_server() {
 		char message_to_client_buffer[MAX_MESSAGE_SIZE] = { 0 };
 		sprintf_s(message_to_client_buffer, MAX_MESSAGE_SIZE, "%s: %s", client_socket_message.nickname, client_socket_message.text_message);
 
+		message_to_client_buffer[strlen(message_to_client_buffer) - 1] = 0;
+
 		for (int i = 0; i < MAX_CLIENTS; i++) {
 			if (ntohs(clients[i].client_addr.sin_port) == 0) {
 				continue;
@@ -95,6 +97,8 @@ void start_server() {
 			else {
 				char same_messenger_buffer[MAX_MESSAGE_SIZE] = { 0 };
 				sprintf_s(same_messenger_buffer, MAX_MESSAGE_SIZE, "You: %s", client_message);
+
+				same_messenger_buffer[strlen(same_messenger_buffer) - 1] = 0;
 
 				if (sendto(socket_desc, same_messenger_buffer, (int)strlen(same_messenger_buffer), 0,
 					(struct sockaddr*)&clients[i].client_addr, client_struct_length) < 0) {
