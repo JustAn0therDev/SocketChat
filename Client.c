@@ -3,20 +3,15 @@
 #include <windows.h>
 #include <stdio.h>
 #include <processthreadsapi.h>
+#include "Structs.h"
 
 #define MAX_MESSAGE_SIZE 2000
 
-typedef struct {
-	SOCKET socket_desc;
-	struct sockaddr* server_addr;
-	int server_struct_length;
-} ReadMessageInput;
-
 void read_message(LPVOID lpParam);
 
-int start_client() {
+int start_client(char* nickname) {
 	SOCKET socket_desc;
-	char client_message[2000];
+	ClientSocketMessage client_socket_message = { 0 };
 	struct sockaddr_in server_addr = { 0 };
 	int server_struct_length = sizeof(server_addr);
 
@@ -53,13 +48,16 @@ int start_client() {
 	(LPTHREAD_START_ROUTINE)read_message,           // thread function name
 	&rmi,											// argument to thread function 
 	0,												// use default creation flags 
-	&dword);										// returns the thread identifier 
+	&dword);										// returns the thread identifier
+
+	strcpy(client_socket_message.nickname, nickname);
 
 	while (1) {
 		// Is this REALLY the BEST way to read input though?
-		fgets(client_message, MAX_MESSAGE_SIZE, stdin);
+		fgets(client_socket_message.text_message, MAX_MESSAGE_SIZE, stdin);
 		
-		if (sendto(socket_desc, client_message, (int)strlen(client_message), 0,
+		// Testing if passing a struct casted as a char* works
+		if (sendto(socket_desc, (char*)&client_socket_message, sizeof(client_socket_message), 0,
 			(struct sockaddr*)&server_addr, server_struct_length) < 0) {
 			printf("Unable to send message\n");
 			return -1;

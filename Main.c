@@ -16,7 +16,10 @@ int main() {
 		start_server();
 	}
 	else if (n == '2') {
-		start_client();
+		char nickname[150];
+		printf("Please tell me your nickname (up to 150 characters): ");
+		scanf("%s", nickname);
+		start_client(nickname);
 	}
 	else {
 		printf("wrong.\n");

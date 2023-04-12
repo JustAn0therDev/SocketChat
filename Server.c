@@ -2,18 +2,20 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <stdio.h>
+#include "Structs.h"
 
 #define MAX_MESSAGE_SIZE 2000
+#define MAX_CLIENTS 10
 
-int contains(struct sockaddr_in* addresses, size_t addresses_size, struct sockaddr_in* current_address);
-int is_same_address(struct sockaddr_in* first, struct sockaddr_in* second);
+int contains(SocketClient* clients, struct sockaddr_in* current_address);
+inline int is_same_address(struct sockaddr_in* first, struct sockaddr_in* second);
 
 int start_server() {
 	SOCKET socket_desc;
 	struct sockaddr_in server_addr = { 0 }, client_addr = { 0 };
 	int client_struct_length = sizeof(client_addr);
-	struct sockaddr_in addresses[10] = { 0 };
-	int addressesIdx = 0;
+	SocketClient clients[MAX_CLIENTS] = { 0 };
+	int clientsIdx = 0;
 
 	WSADATA wsaData = { 0 };
 
@@ -41,63 +43,66 @@ int start_server() {
 		return -1;
 	}
 
-	printf("Done with binding\n");
+	printf("Binded.\n");
 
-	printf("Listening for incoming messages...\n\n");
+	printf("Listening for incoming messages...\n");
 
 	while (1) {
-		char client_message[2000];
-		memset(client_message, '\0', sizeof(client_message));
+		ClientSocketMessage client_socket_message = { 0 };
+		char client_message[2000] = { 0 };
 
-		if (recvfrom(socket_desc, client_message, sizeof(client_message), 0,
+		if (recvfrom(socket_desc, client_message, sizeof(client_socket_message), 0,
 			(struct sockaddr*)&client_addr, &client_struct_length) < 0) {
 			printf("Couldn't receive\n");
 			return -1;
 		}
 
-		if (contains(addresses, 10, &client_addr) == 0) {
-			addresses[addressesIdx] = client_addr;
-			addressesIdx++;
+		client_socket_message = *((ClientSocketMessage*)client_message);
+
+		if (contains(clients, &client_addr) == 0) {
+			clients[clientsIdx] = (SocketClient){ &client_addr };
+			strcpy(clients[clientsIdx].nickname, client_socket_message.nickname);
+			clientsIdx++;
 		}
 
-		printf("Client %d: %s\n", ntohs(client_addr.sin_port), client_message);
+		printf("Client %s: %s\n", client_socket_message.nickname, client_socket_message.text_message);
 
-		char buffer[MAX_MESSAGE_SIZE] = { 0 };
-		sprintf_s(buffer, MAX_MESSAGE_SIZE, "%d: %s", ntohs(client_addr.sin_port), client_message);
+		char message_to_client_buffer[MAX_MESSAGE_SIZE] = { 0 };
+		sprintf_s(message_to_client_buffer, MAX_MESSAGE_SIZE, "%s: %s", client_socket_message.nickname, client_socket_message.text_message);
 
-		for (int i = 0; i < 10; i++) {
-			if (ntohs(addresses[i].sin_port) == 0) {
+		for (int i = 0; i < MAX_CLIENTS; i++) {
+			if (clients[i].client_addr == 0) {
 				continue;
 			}
 
-			if (is_same_address(&addresses[i], &client_addr) == 0) {
-				if (sendto(socket_desc, buffer, (int)strlen(buffer), 0,
-					(struct sockaddr*)&addresses[i], client_struct_length) < 0) {
-					printf("Couldn't send message to: %s:%d\n", inet_ntoa(addresses[i].sin_addr), ntohs(addresses[i].sin_port));
+			if (is_same_address(clients[i].client_addr, &client_addr) == 0) {
+				if (sendto(socket_desc, message_to_client_buffer, (int)strlen(message_to_client_buffer), 0,
+					(struct sockaddr*)clients[i].client_addr, client_struct_length) < 0) {
+					printf("Couldn't send message to: %s (%s:%d)\n", clients[i].nickname, inet_ntoa(clients[i].client_addr->sin_addr), ntohs(clients[i].client_addr->sin_port));
 					continue;
 				}
 			}
 			else {
 				char sameMessengerBuffer[MAX_MESSAGE_SIZE] = { 0 };
-				sprintf_s(sameMessengerBuffer, MAX_MESSAGE_SIZE, "%d (You): %s", ntohs(client_addr.sin_port), client_message);
+				sprintf_s(sameMessengerBuffer, MAX_MESSAGE_SIZE, "You: %s", client_message);
 
 				if (sendto(socket_desc, sameMessengerBuffer, (int)strlen(sameMessengerBuffer), 0,
-					(struct sockaddr*)&addresses[i], client_struct_length) < 0) {
-					printf("Couldn't send message to: %s:%d\n", inet_ntoa(addresses[i].sin_addr), ntohs(addresses[i].sin_port));
+					(struct sockaddr*)clients[i].client_addr, client_struct_length) < 0) {
+					printf("Couldn't send message to: %s (%s:%d)\n", clients[i].nickname, inet_ntoa(clients[i].client_addr->sin_addr), ntohs(clients[i].client_addr->sin_port));
 					continue;
 				}
 			}
 
-			printf("Sent message to: %s:%d\n", inet_ntoa(addresses[i].sin_addr), ntohs(addresses[i].sin_port));
+			printf("Sent message to: %s (%s:%d)\n", clients[i].nickname, inet_ntoa(clients[i].client_addr->sin_addr), ntohs(clients[i].client_addr->sin_port));
 		}
 	}
 
 	return 0;
 }
 
-int contains(struct sockaddr_in* addresses, size_t addresses_size, struct sockaddr_in* current_address) {
-	for (int i = 0; i < addresses_size; i++) {
-		if (is_same_address(&addresses[i], current_address)) {
+int contains(SocketClient* clients, struct sockaddr_in* current_address) {
+	for (int i = 0; i < MAX_CLIENTS; i++) {
+		if (clients[i].client_addr != 0 && is_same_address(clients[i].client_addr, current_address)) {
 			return 1;
 		}
 	}
