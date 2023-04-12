@@ -7,7 +7,7 @@ typedef struct {
 } ClientSocketMessage;
 
 typedef struct {
-	struct sockaddr_in* client_addr;
+	struct sockaddr_in client_addr;
 	char nickname[150];
 } SocketClient;
 

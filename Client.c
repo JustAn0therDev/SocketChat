@@ -9,7 +9,7 @@
 
 void read_message(LPVOID lpParam);
 
-int start_client(char* nickname) {
+void start_client(char* nickname) {
 	SOCKET socket_desc;
 	ClientSocketMessage client_socket_message = { 0 };
 	struct sockaddr_in server_addr = { 0 };
@@ -22,14 +22,14 @@ int start_client(char* nickname) {
 
 	if (iResult != 0) {
 		wprintf(L"WSAStartup failed: %d\n", iResult);
-		return 1;
+		return;
 	}
 
 	socket_desc = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	if (socket_desc == INVALID_SOCKET) {
 		printf("Error while creating socket\n");
-		return -1;
+		return;
 	}
 
 	printf("Socket created successfully\n");
@@ -63,8 +63,6 @@ int start_client(char* nickname) {
 			return -1;
 		}
 	}
-
-	return 0;
 }
 
 void read_message(LPVOID lpParam) {
